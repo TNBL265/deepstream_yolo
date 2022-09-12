@@ -1,6 +1,6 @@
-person
-bicycle
-car
+safe
+high risk
+danger zone
 motorbike
 aeroplane
 bus

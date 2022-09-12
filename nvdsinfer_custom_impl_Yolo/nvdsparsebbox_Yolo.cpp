@@ -85,6 +85,8 @@ decodeYoloV2Tensor(
     const uint& netH)
 {
     std::vector<NvDsInferParseObjectInfo> binfo;
+    // Add danger zone bounding boxes
+    addBBoxProposal(netW, netH/2, 0, 0, stride, netW, netH, 2, 1, binfo);
     for (uint y = 0; y < gridSizeH; ++y) {
         for (uint x = 0; x < gridSizeW; ++x) {
             for (uint b = 0; b < numBBoxes; ++b)
@@ -196,7 +198,4 @@ extern "C" bool NvDsInferParseCustomYoloV2Tiny(
 }
 
 /* Check that the custom function has been defined correctly */
-CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseCustomYoloV3);
-CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseCustomYoloV3Tiny);
-CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseCustomYoloV2);
 CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseCustomYoloV2Tiny);

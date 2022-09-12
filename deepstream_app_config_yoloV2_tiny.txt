@@ -103,10 +103,10 @@ model-engine-file=model_b1_gpu0_fp32.engine
 labelfile-path=labels.txt
 batch-size=1
 #Required by the app for OSD, not a plugin property
-bbox-border-color0=1;0;0;1
-bbox-border-color1=0;1;1;1
-bbox-border-color2=0;0;1;1
-bbox-border-color3=0;1;0;1
+# safe: blue, high risk: red, danger zone; yellow
+bbox-border-color0=0;0;1;1
+bbox-border-color1=1;0;0;1
+bbox-border-color2=1;1;0;1
 interval=2
 gie-unique-id=1
 nvbuf-memory-type=0
