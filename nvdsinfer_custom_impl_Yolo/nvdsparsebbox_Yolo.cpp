@@ -65,12 +65,29 @@ static NvDsInferParseObjectInfo convertBBox(const float& bx, const float& by, co
     return b;
 }
 
+static NvDsInferParseObjectInfo convertBBoxDangerZone(const uint& netW, const uint& netH)
+{
+    NvDsInferParseObjectInfo b;
+    b.left = 0;
+    b.width = netW;
+    b.top = 0;
+    b.height = netH/4;
+    return b;
+}
+
+static void addBBoxDangerZone(const uint& netW, const uint& netH, std::vector<NvDsInferParseObjectInfo>& binfo)
+{
+    NvDsInferParseObjectInfo bbi = convertBBoxDangerZone(netW, netH);
+    bbi.detectionConfidence = 1;
+    bbi.classId = 2;
+    binfo.push_back(bbi);
+}
+
 static void addBBoxProposal(const float bx, const float by, const float bw, const float bh,
                      const uint stride, const uint& netW, const uint& netH, const int maxIndex,
                      const float maxProb, std::vector<NvDsInferParseObjectInfo>& binfo)
 {
     NvDsInferParseObjectInfo bbi = convertBBox(bx, by, bw, bh, stride, netW, netH);
-    if (bbi.width < 1 || bbi.height < 1) return;
 
     bbi.detectionConfidence = maxProb;
     bbi.classId = maxIndex;
@@ -85,8 +102,7 @@ decodeYoloV2Tensor(
     const uint& netH)
 {
     std::vector<NvDsInferParseObjectInfo> binfo;
-    // Add danger zone bounding boxes
-    addBBoxProposal(netW, netH/2, 0, 0, stride, netW, netH, 2, 1, binfo);
+    addBBoxDangerZone(netW, netH, binfo);
     for (uint y = 0; y < gridSizeH; ++y) {
         for (uint x = 0; x < gridSizeW; ++x) {
             for (uint b = 0; b < numBBoxes; ++b)
