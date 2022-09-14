@@ -127,7 +127,7 @@ decodeYoloV2Tensor(
                 float maxProb = 0.0f;
                 int maxIndex = -1;
 
-                for (uint i = 0; i < numOutputClasses; ++i)
+                uint i = 0;
                 {
                     float prob
                         = (detections[bbindex
@@ -215,3 +215,4 @@ extern "C" bool NvDsInferParseCustomYoloV2Tiny(
 
 /* Check that the custom function has been defined correctly */
 CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseCustomYoloV2Tiny);
+
