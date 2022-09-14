@@ -71,27 +71,26 @@ static NvDsInferParseObjectInfo convertBBoxDangerZone(const uint& netW, const ui
     b.left = 0;
     b.width = netW;
     b.top = 0;
-    b.height = netH/4;
+    b.height = netH/8;
     return b;
 }
 
-static void addBBoxDangerZone(const uint& netW, const uint& netH, std::vector<NvDsInferParseObjectInfo>& binfo)
+bool checkOverlap(NvDsInferParseObjectInfo dangerZoneBbi, NvDsInferParseObjectInfo personBbi) 
 {
-    NvDsInferParseObjectInfo bbi = convertBBoxDangerZone(netW, netH);
-    bbi.detectionConfidence = 1;
-    bbi.classId = 2;
-    binfo.push_back(bbi);
-}
+    // if (personBbi.width == 0 || personBbi.height == 0)
+    //     return false;
 
-static void addBBoxProposal(const float bx, const float by, const float bw, const float bh,
-                     const uint stride, const uint& netW, const uint& netH, const int maxIndex,
-                     const float maxProb, std::vector<NvDsInferParseObjectInfo>& binfo)
-{
-    NvDsInferParseObjectInfo bbi = convertBBox(bx, by, bw, bh, stride, netW, netH);
+    // if (dangerZoneBbi.left > personBbi.left + personBbi.width || 
+    //     personBbi.left > dangerZoneBbi.left + dangerZoneBbi.width)
+    //     return false;
 
-    bbi.detectionConfidence = maxProb;
-    bbi.classId = maxIndex;
-    binfo.push_back(bbi);
+    // if (dangerZoneBbi.top - dangerZoneBbi.height > personBbi.top || 
+    //     personBbi.top - personBbi.height > dangerZoneBbi.top)
+    //     return false;
+    if (personBbi.top < dangerZoneBbi.top + dangerZoneBbi.height)
+        return true;
+
+    return false;
 }
 
 static std::vector<NvDsInferParseObjectInfo>
@@ -102,7 +101,12 @@ decodeYoloV2Tensor(
     const uint& netH)
 {
     std::vector<NvDsInferParseObjectInfo> binfo;
-    addBBoxDangerZone(netW, netH, binfo);
+
+    NvDsInferParseObjectInfo dangerZoneBbi = convertBBoxDangerZone(netW, netH);
+    dangerZoneBbi.detectionConfidence = 1;
+    dangerZoneBbi.classId = 2;
+    binfo.push_back(dangerZoneBbi);
+
     for (uint y = 0; y < gridSizeH; ++y) {
         for (uint x = 0; x < gridSizeW; ++x) {
             for (uint b = 0; b < numBBoxes; ++b)
@@ -124,24 +128,26 @@ decodeYoloV2Tensor(
                 const float objectness
                     = detections[bbindex + numGridCells * (b * (5 + numOutputClasses) + 4)];
 
+                NvDsInferParseObjectInfo personBbi = convertBBox(bx, by, bw, bh, stride, netW, netH);
+
                 float maxProb = 0.0f;
                 int maxIndex = -1;
+                
+                float prob = (detections[bbindex
+                                    + numGridCells * (b * (5 + numOutputClasses) + 5)]);
 
-                uint i = 0;
-                {
-                    float prob
-                        = (detections[bbindex
-                                      + numGridCells * (b * (5 + numOutputClasses) + (5 + i))]);
+                if (prob > maxProb)
+                    maxProb = prob;
 
-                    if (prob > maxProb)
-                    {
-                        maxProb = prob;
-                        maxIndex = i;
-                    }
-                }
                 maxProb = objectness * maxProb;
 
-                addBBoxProposal(bx, by, bw, bh, stride, netW, netH, maxIndex, maxProb, binfo);
+                personBbi.detectionConfidence = maxProb;
+                if (checkOverlap(dangerZoneBbi, personBbi))
+                    maxIndex = 1;
+                else 
+                    maxIndex = 0;
+                personBbi.classId = maxIndex;
+                binfo.push_back(personBbi);
             }
         }
     }
@@ -215,4 +221,5 @@ extern "C" bool NvDsInferParseCustomYoloV2Tiny(
 
 /* Check that the custom function has been defined correctly */
 CHECK_CUSTOM_PARSE_FUNC_PROTOTYPE(NvDsInferParseCustomYoloV2Tiny);
+
 
