@@ -45,7 +45,7 @@ enable=1
 type=3
 uri=file://../../samples/streams/sample_1080p_h264.mp4
 type=2
-uri=rtsp://10.21.147.14:8554/test
+uri=rtsp://172.18.240.131:8555/app/samsung
 num-sources=1
 gpu-id=0
 # (0): memtype_device   - Memory type Device
@@ -56,11 +56,12 @@ cudadec-memtype=0
 [sink0]
 enable=1
 #Type - 1=FakeSink 2=EglSink 3=File
-type=2
+type=4
+codec=1
 sync=0
-source-id=0
-gpu-id=0
-nvbuf-memory-type=0
+bitrate=4000000
+rtsp-port=8556
+udp-port=5400
 
 [osd]
 enable=1
